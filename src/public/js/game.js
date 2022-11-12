@@ -2,9 +2,12 @@ const desktop = document.querySelector('.desktop');
 const mobile = document.querySelector('.mobile');
 const controls = document.querySelector('.mobileControls');
 const socket = io({
-    autoConnect: true
+    autoConnect: false
 });
-socket.connect();
+let player;
+// socket.on('connected', data => {
+//     player = data.player;
+// })
 
 mobile.addEventListener('click', () => {
     controls.classList.add('visible');
@@ -164,31 +167,63 @@ addEventListener('keydown', e => {
     switch (e.keyCode) {
         case 32:
             ball.isMoving = true
+            paddleLeft.y = 140
+            paddleRight.y = 140
             socket.emit('movement', { movement: 'start' });
             break;
-        case 87:
-            paddleLeft.moveUp();
-            socket.emit('movement', { movement: 'leftUp' });
-            break;
-        case 83:
-            paddleLeft.moveDown();
-            socket.emit('movement', { movement: 'leftDown' });
-            break;
-        case 38: // up
-            paddleRight.moveUp();
-            socket.emit('movement', { movement: 'rightUp' });
-            break;
-        case 40: // down
-            paddleRight.moveDown();
-            socket.emit('movement', { movement: 'rightDown' });
-            break;
+    }
+    if (player == 1) {
+        switch (e.keyCode) {
+            case 87:
+                paddleLeft.moveUp();
+                socket.emit('movement', { movement: 'leftUp' });
+                break;
+            case 83:
+                paddleLeft.moveDown();
+                socket.emit('movement', { movement: 'leftDown' });
+                break;
+        }
+    } else if (player == 2) {
+        switch (e.keyCode) {
+            case 38: // up
+                paddleRight.moveUp();
+                socket.emit('movement', { movement: 'rightUp' });
+                break;
+            case 40: // down
+                paddleRight.moveDown();
+                socket.emit('movement', { movement: 'rightDown' });
+                break;
+        }
     }
 })
-document.querySelector('.iniciar').addEventListener('click', () => ball.isMoving = true)
-document.querySelector('.upOne').addEventListener('click', () => paddleLeft.moveUp())
-document.querySelector('.downOne').addEventListener('click', () => paddleLeft.moveDown());
-document.querySelector('.upTwo').addEventListener('click', () => paddleRight.moveUp());
-document.querySelector('.downTwo').addEventListener('click', () => paddleRight.moveDown());
+
+document.querySelector('.iniciar').addEventListener('click', () => {
+    ball.isMoving = true
+    paddleLeft.y = 140
+    paddleRight.y = 140
+    socket.emit('movement', { movement: 'start' });
+})
+if (player == 1) {
+    document.querySelector('.upOne').addEventListener('click', () => {
+        paddleLeft.moveUp()
+        socket.emit('movement', { movement: 'leftUp' });
+    })
+    document.querySelector('.downOne').addEventListener('click', () => {
+        paddleLeft.moveDown()
+        socket.emit('movement', { movement: 'leftDown' });
+    });
+} else if (player == 2) {
+    document.querySelector('.upTwo').addEventListener('click', () => {
+        paddleRight.moveUp()
+        socket.emit('movement', { movement: 'rightUp' });
+    });
+    document.querySelector('.downTwo').addEventListener('click', () => {
+        paddleRight.moveDown()
+        socket.emit('movement', { movement: 'rightDown' });
+    });
+}
+
+
 socket.on('movement', data => {
     switch (data.movement) {
         case "leftUp":
@@ -205,8 +240,20 @@ socket.on('movement', data => {
             break;
         case "start":
             ball.isMoving = true
+            paddleLeft.y = 140
+            paddleRight.y = 140
             break;
     }
+})
+document.querySelector('.p1').addEventListener('click', () => {
+    socket.connect();
+    player = 1;
+    // socket.emit('connected', { player: 1 })
+})
+document.querySelector('.p2').addEventListener('click', () => {
+    socket.connect();
+    player = 2;
+    // socket.emit('connected', { player: 2 })
 })
 
 requestAnimationFrame(update);

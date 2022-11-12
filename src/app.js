@@ -27,27 +27,14 @@ io.on('connection', async socket => {
     socket.on('movement', async (data) => {
         socket.broadcast.emit('movement', data);
     })
+    socket.on('connected', async (data) => {
+        io.emit ('connected', data);
+    })
     // socket.on('userConnected', async (data) => {
     //     let archivo = await newFile.getAll();
     //     await io.emit('log', archivo);
 
     //     let product = await newProduct.getAll();
-    //     await io.emit('sendProduct', product)
-    // })
-
-    // socket.on('message', async (data) => {
-    //     await newFile.addItem(data)
-    //     let archivo = await newFile.getAll();
-    //     console.log(archivo);
-    //     await io.emit('log', archivo);
-    // })
-
-    // socket.on('addProduct', async (data) => {
-    //     await newProduct.getAll();
-    //     await newProduct.addItem(data);
-    //     let product = await newProduct.getAll();
-    //     console.log(product);
-    //     console.log(data);
     //     await io.emit('sendProduct', product)
     // })
 })
