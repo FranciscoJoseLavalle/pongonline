@@ -28,7 +28,7 @@ io.on('connection', async socket => {
         socket.broadcast.emit('movement', data);
     })
     socket.on('connected', async (data) => {
-        io.emit ('connected', data);
+        socket.broadcast.emit('connected', data);
     })
     // socket.on('userConnected', async (data) => {
     //     let archivo = await newFile.getAll();

@@ -1,13 +1,32 @@
 const desktop = document.querySelector('.desktop');
 const mobile = document.querySelector('.mobile');
 const controls = document.querySelector('.mobileControls');
+const p1 = document.querySelector('.p1')
+const p2 = document.querySelector('.p2')
 const socket = io({
     autoConnect: false
 });
 let player;
-// socket.on('connected', data => {
-//     player = data.player;
-// })
+socket.connect();
+
+p1.addEventListener('click', (e) => {
+    player = 1;
+    e.target.disabled = true;
+    p2.disabled = true;
+    mobileControls();
+    socket.emit('connected', { player: 1 })
+})
+p2.addEventListener('click', (e) => {
+    player = 2;
+    e.target.disabled = true;
+    p1.disabled = true;
+    mobileControls();
+    socket.emit('connected', { player: 2 })
+})
+socket.on('connected', data => {
+    console.log(data);
+    data.player === 1 ? p1.disabled = true : p2.disabled = true;
+})
 
 mobile.addEventListener('click', () => {
     controls.classList.add('visible');
@@ -119,6 +138,9 @@ const update = () => {
     drawCourt()
     drawScore()
     checkCollitions()
+    player === 1 ? socket.emit('connected', { player: 1 }) : null;
+    player === 2 ? socket.emit('connected', { player: 2 }) : null;
+    finishGame()
     ball.draw()
     paddleLeft.draw()
     paddleRight.draw()
@@ -154,6 +176,26 @@ const checkCollitions = () => {
     }
 }
 
+const finishGame = () => {
+    if (score.left === 12) {
+        score.left = 0;
+        score.right = 0;
+        player = null;
+        setTimeout(() => {
+            p1.disabled = false;
+            p2.disabled = false;
+        }, 500)
+    } else if (score.right === 12) {
+        score.left = 0;
+        score.right = 0;
+        player = null;
+        setTimeout(() => {
+            p1.disabled = false;
+            p2.disabled = false;
+        }, 500)
+    }
+}
+
 const drawScore = () => {
     ctx.fillStyle = 'gray'
     ctx.font = '2rem "Press Start 2P"'
@@ -163,15 +205,17 @@ const drawScore = () => {
 
 // listeners
 addEventListener('keydown', e => {
-    console.log(e.keyCode);
-    switch (e.keyCode) {
-        case 32:
-            ball.isMoving = true
-            paddleLeft.y = 140
-            paddleRight.y = 140
-            socket.emit('movement', { movement: 'start' });
-            break;
+    if (player) {
+        switch (e.keyCode) {
+            case 32:
+                ball.isMoving = true
+                paddleLeft.y = 140
+                paddleRight.y = 140
+                socket.emit('movement', { movement: 'start' });
+                break;
+        }
     }
+
     if (player == 1) {
         switch (e.keyCode) {
             case 87:
@@ -197,32 +241,33 @@ addEventListener('keydown', e => {
     }
 })
 
-document.querySelector('.iniciar').addEventListener('click', () => {
-    ball.isMoving = true
-    paddleLeft.y = 140
-    paddleRight.y = 140
-    socket.emit('movement', { movement: 'start' });
-})
-if (player == 1) {
-    document.querySelector('.upOne').addEventListener('click', () => {
-        paddleLeft.moveUp()
-        socket.emit('movement', { movement: 'leftUp' });
+const mobileControls = () => {
+    document.querySelector('.iniciar').addEventListener('click', () => {
+        ball.isMoving = true
+        paddleLeft.y = 140
+        paddleRight.y = 140
+        socket.emit('movement', { movement: 'start' });
     })
-    document.querySelector('.downOne').addEventListener('click', () => {
-        paddleLeft.moveDown()
-        socket.emit('movement', { movement: 'leftDown' });
-    });
-} else if (player == 2) {
-    document.querySelector('.upTwo').addEventListener('click', () => {
-        paddleRight.moveUp()
-        socket.emit('movement', { movement: 'rightUp' });
-    });
-    document.querySelector('.downTwo').addEventListener('click', () => {
-        paddleRight.moveDown()
-        socket.emit('movement', { movement: 'rightDown' });
-    });
+    if (player == 1) {
+        document.querySelector('.upOne').addEventListener('click', () => {
+            paddleLeft.moveUp()
+            socket.emit('movement', { movement: 'leftUp' });
+        })
+        document.querySelector('.downOne').addEventListener('click', () => {
+            paddleLeft.moveDown()
+            socket.emit('movement', { movement: 'leftDown' });
+        });
+    } else if (player == 2) {
+        document.querySelector('.upTwo').addEventListener('click', () => {
+            paddleRight.moveUp()
+            socket.emit('movement', { movement: 'rightUp' });
+        });
+        document.querySelector('.downTwo').addEventListener('click', () => {
+            paddleRight.moveDown()
+            socket.emit('movement', { movement: 'rightDown' });
+        });
+    }
 }
-
 
 socket.on('movement', data => {
     switch (data.movement) {
@@ -244,16 +289,6 @@ socket.on('movement', data => {
             paddleRight.y = 140
             break;
     }
-})
-document.querySelector('.p1').addEventListener('click', () => {
-    socket.connect();
-    player = 1;
-    // socket.emit('connected', { player: 1 })
-})
-document.querySelector('.p2').addEventListener('click', () => {
-    socket.connect();
-    player = 2;
-    // socket.emit('connected', { player: 2 })
 })
 
 requestAnimationFrame(update);
